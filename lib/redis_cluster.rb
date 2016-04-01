@@ -1,7 +1,15 @@
 require "redis_cluster/version"
 
 module RedisCluster
-  # Your code goes here...
+  
+  class << self
+
+    def new(startup_hosts, *global_configs)
+      @client = Client.new(startup_hosts, global_configs)
+    end
+
+  end
+
 end
 
 require "redis_cluster/client"
