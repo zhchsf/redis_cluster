@@ -4,6 +4,10 @@ module RedisCluster
   
   class << self
 
+    # startup_hosts examples:
+    #   [{host: 'xxx', port: 'xxx'}, {host: 'xxx', port: 'xxx'}, ...]
+    # global_configs:
+    #   now not used, options for later versions
     def new(startup_hosts, *global_configs)
       @client = Client.new(startup_hosts, global_configs)
     end

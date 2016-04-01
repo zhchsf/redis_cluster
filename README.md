@@ -1,8 +1,9 @@
 # RedisCluster
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/redis_cluster`. To experiment with that code, run `bin/console` for an interactive prompt.
+RedisCluster is rewrited from [https://github.com/antirez/redis-rb-cluster](https://github.com/antirez/redis-rb-cluster)
 
-TODO: Delete this and the text above, and describe your gem
+Now is developing, and not use in any production environments. Welcome to test and contribute codes!
+
 
 ## Installation
 
@@ -22,7 +23,14 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Doing!
+
+```ruby
+hosts = [{host: 127.0.0.1, port: 7000}, {host: 127.0.0.1, port: 7001}]
+rs = RedisCluster.new hosts
+rs.set "test", 1
+rs.get "test"
+```
 
 ## Development
 
