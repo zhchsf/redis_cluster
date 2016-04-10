@@ -39,7 +39,7 @@ module RedisCluster
     end
 
     def self.redis(options)
-      Redis.new(options)
+      ::Redis.new(options)
     end
 
   end # end Node

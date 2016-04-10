@@ -1,6 +1,6 @@
 # RedisCluster
 
-RedisCluster is rewrited from [https://github.com/antirez/redis-rb-cluster](https://github.com/antirez/redis-rb-cluster)
+RedisCluster for ruby is rewrited from [https://github.com/antirez/redis-rb-cluster](https://github.com/antirez/redis-rb-cluster)
 
 Now is developing, and not use in any production environments. Welcome to test and contribute codes!
 

@@ -23,7 +23,7 @@ module RedisCluster
           sleep 0.1 if ttl < Configuration::REQUEST_TTL/2
         rescue => e
           err_code = e.to_s.split.first
-          raise e if !%w(MOVED ASK).include?(err_code)
+          raise e unless %w(MOVED ASK).include?(err_code)
 
           if err_code == "ASK"
              asking = true
