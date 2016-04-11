@@ -3,6 +3,18 @@ require "spec_helper"
 describe "node" do
   subject { RedisCluster::Node.new(host: '127.0.0.1', port: 6379) }
 
+  shared_examples "slots include" do |slot|
+    it "has slot #{slot}" do
+      expect(subject.has_slot? slot).to be_true
+    end
+  end
+
+  shared_examples "slots exclude" do |slot|
+    it "has not slot #{slot}" do
+      expect(subject.has_slot? slot).to_not be_true
+    end
+  end
+
   context "basic infos" do
 
     it "have a name" do
@@ -12,22 +24,15 @@ describe "node" do
   end
 
   context "slots" do
-    let(:slots_arr) {
-      [1..100, 200..300]
-    }
-
     before :each do
-      subject.slots = slots_arr
+      subject.slots = [1..100, 200..300]
     end
 
-    it "has slot 10 and 290" do
-      expect(subject.has_slot?(10)).to be_true
-      expect(subject.has_slot?(290)).to be_true
-    end
+    it_behaves_like "slots include", 10
 
-    it "has not slot 110" do
-      expect(subject.has_slot?(110)).to_not be_true
-    end
+    it_behaves_like "slots include", 290
+
+    it_behaves_like "slots exclude", 110
   end
 
   context "redis connection" do
