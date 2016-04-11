@@ -7,15 +7,16 @@ module RedisCluster
       @nodes = []
     end
 
-    def add_node!(options, slots)
-      new_node = Node.new(options)
+    # TODO: type check
+    def add_node!(node_options, slots)
+      new_node = Node.new(node_options)
       node = @nodes.find {|n| n.name == new_node.name } || new_node
       node.slots = slots
       @nodes.push(node).uniq!
     end
 
-    def delete_except!(new_hosts)
-      names = new_hosts.map {|host, port| "#{host}:#{port}" }
+    def delete_except!(master_hosts)
+      names = master_hosts.map {|host, port| "#{host}:#{port}" }
       @nodes.delete_if {|n| !names.include?(n.name) }
     end
 
