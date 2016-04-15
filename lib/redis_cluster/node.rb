@@ -39,7 +39,8 @@ module RedisCluster
     end
 
     def self.redis(options)
-      ::Redis.new(options)
+      extra_options = {timeout: Configuration::DEFAULT_TIMEOUT}
+      ::Redis.new(options.merge(extra_options))
     end
 
   end # end Node
