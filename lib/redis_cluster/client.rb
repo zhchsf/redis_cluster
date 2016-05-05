@@ -2,7 +2,7 @@ module RedisCluster
 
   class Client
 
-    def initialize(startup_hosts, global_configs)
+    def initialize(startup_hosts, global_configs = {})
       @startup_hosts = startup_hosts
       @pool = Pool.new
       @locking = false

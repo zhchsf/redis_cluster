@@ -5,13 +5,13 @@ describe "node" do
 
   shared_examples "slots include" do |slot|
     it "has slot #{slot}" do
-      expect(subject.has_slot? slot).to be_true
+      expect(subject.has_slot? slot).to be_truthy
     end
   end
 
   shared_examples "slots exclude" do |slot|
     it "has not slot #{slot}" do
-      expect(subject.has_slot? slot).to_not be_true
+      expect(subject.has_slot? slot).to_not be_truthy
     end
   end
 
