@@ -30,27 +30,37 @@ describe "client" do
     end
   end
 
-  # context "failover" do
-  #   let(:nodes) {@redis.instance_variable_get("@pool").nodes}
-  #   before :each do
-  #     key_slot_map = {a: 15495, b: 3300, c: 7365, d: 11298, e: 15363, f: 3168}
-  #   end
+  context "failover" do
+    before :each do
+      key_slot_map = {a: 15495, b: 3300, c: 7365, d: 11298, e: 15363, f: 3168}
+      @value = "ok wang"
 
-  #   it "redetect nodes" do
-  #     cluster_nodes = [
-  #       [1000, 5460, ["127.0.0.1", 7003], ["127.0.0.1", 7000]], 
-  #       [0, 999, ["127.0.0.1", 7006], ["127.0.0.1", 7007]], 
-  #       [15001, 16383, ["127.0.0.1", 7006], ["127.0.0.1", 7007]], 
-  #       [10923, 15000, ["127.0.0.1", 7002], ["127.0.0.1", 7005]], 
-  #       [5461, 10922, ["127.0.0.1", 7004], ["127.0.0.1", 7001]]
-  #     ]
-  #     allow_any_instance_of(Redis).to receive(:cluster).and_return(cluster_nodes)
+      cluster_nodes = [
+        [1000, 5460, ["127.0.0.1", 7003], ["127.0.0.1", 7000]],
+        [0, 999, ["127.0.0.1", 7006], ["127.0.0.1", 7007]],
+        [15001, 16383, ["127.0.0.1", 7006], ["127.0.0.1", 7007]],
+        [10923, 15000, ["127.0.0.1", 7002], ["127.0.0.1", 7005]],
+        [5461, 10922, ["127.0.0.1", 7004], ["127.0.0.1", 7001]]
+      ]
+      allow_any_instance_of(Redis).to receive(:cluster).and_return(cluster_nodes)
 
-  #     expect_any_instance_of(Redis).to receive(:get).once.and_raise("MOVED 15495 127.0.0.1:7006")
-  #     expect_any_instance_of(Redis).to receive(:get).and_return("ok wang")
+      redis_7002 = double("7002")
+      allow(redis_7002).to receive(:get).and_raise("MOVED 15495 127.0.0.1:7006")
+      @redis.instance_variable_get("@pool").nodes.find {|node| node.instance_variable_get("@options")[:port] == 7002 }.instance_variable_set("@connection", redis_7002)
 
-  #     puts @redis.get("a")
-  #     puts nodes.map{|n| n.slots}
-  #   end
-  # end
+      redis_7006 = double("7006")
+      allow(redis_7006).to receive(:get).and_return(@value)
+      @redis.instance_variable_get("@pool").nodes.find {|node| node.instance_variable_get("@options")[:port] == 7006 }.instance_variable_set("@connection", redis_7006)
+
+      # expect_any_instance_of(Redis).to receive(:get).once.and_raise("MOVED 15495 127.0.0.1:7006")
+      # expect_any_instance_of(Redis).to receive(:get).and_return("ok wang")
+    end
+
+    it "redetect nodes and get right redis value" do
+      expect(@redis.get("a")).to eq @value
+
+      node_7006 = @redis.instance_variable_get("@pool").nodes.find {|node| node.instance_variable_get("@options")[:port] == 7006 }
+      expect(node_7006.has_slot? 15495).to be_truthy
+    end
+  end
 end
