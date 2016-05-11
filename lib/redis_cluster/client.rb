@@ -35,6 +35,12 @@ module RedisCluster
       end
     end
 
+    Configuration::SUPPORT_SINGLE_NODE_METHODS.each do |method_name|
+      define_method method_name do |*args|
+        execute(method_name, args)
+      end
+    end
+
     def method_missing(method, *args, &block)
       execute(method, args)
     end
