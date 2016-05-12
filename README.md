@@ -39,17 +39,17 @@ A simple benchmark at my macbook, start 4 master nodes (and 4 cold slave nodes),
 ```ruby
 Benchmark.bm do |x|
   x.report do
-    1.upto(100000).each do |i|
+    1.upto(100_000).each do |i|
       redis.get "test#{i}"
     end
   end
   x.report do
-    1.upto(100000).each do |i|
+    1.upto(100_000).each do |i|
       redis.set "test#{i}", i
     end
   end
   x.report do
-    1.upto(100000).each do |i|
+    1.upto(100_000).each do |i|
       redis.del "test#{i}"
     end
   end
