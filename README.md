@@ -2,7 +2,7 @@
 
 RedisCluster for ruby is rewrited from [https://github.com/antirez/redis-rb-cluster](https://github.com/antirez/redis-rb-cluster)
 
-Now is developing, and not use in any production environments. Welcome to test and contribute codes!
+Now is developing, only support single node methods, and not use in any production environments.
 
 
 ## Installation
@@ -26,10 +26,41 @@ Or install it yourself as:
 Doing!
 
 ```ruby
-hosts = [{host: 127.0.0.1, port: 7000}, {host: 127.0.0.1, port: 7001}]
+hosts = [{host: '127.0.0.1', port: 7000}, {host: '127.0.0.1', port: 7001}]
 rs = RedisCluster.new hosts
 rs.set "test", 1
 rs.get "test"
+```
+
+## Benchmark
+
+A simple benchmark at my macbook, start 4 master nodes (and 4 cold slave nodes), running with one ruby process.
+
+```ruby
+Benchmark.bm do |x|
+  x.report do
+    1.upto(100000).each do |i|
+      redis.get "test#{i}"
+    end
+  end
+  x.report do
+    1.upto(100000).each do |i|
+      redis.set "test#{i}", i
+    end
+  end
+  x.report do
+    1.upto(100000).each do |i|
+      redis.del "test#{i}"
+    end
+  end
+end
+```
+
+```ruby
+       user     system      total        real
+   5.140000   1.500000   6.640000 (  7.745466)
+   5.790000   1.750000   7.540000 (  9.767004)
+   5.740000   1.740000   7.480000 (  9.649341)
 ```
 
 ## Development
