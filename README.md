@@ -26,7 +26,7 @@ Or install it yourself as:
 Doing!
 
 ```ruby
-hosts = [{host: '127.0.0.1', port: 7000}, {host: '127.0.0.1', port: 7001}]
+hosts = [{host: '127.0.0.1', port: 7000}, {host: '127.0.0.1', port: 7001}]  # don't need all, gem can auto detect all nodes, and process failover if some master nodes down
 rs = RedisCluster.new hosts
 rs.set "test", 1
 rs.get "test"
