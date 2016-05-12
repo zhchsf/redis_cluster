@@ -1,3 +1,5 @@
+require "thread"
+
 module RedisCluster
 
   class Client
@@ -5,7 +7,7 @@ module RedisCluster
     def initialize(startup_hosts, global_configs = {})
       @startup_hosts = startup_hosts
       @pool = Pool.new
-      @locking = false
+      @mutex = Mutex.new
       reload_pool_nodes
     end
 
@@ -48,24 +50,23 @@ module RedisCluster
     private
 
     def reload_pool_nodes
-      return if @locking
-      @locking = true
-      @startup_hosts.each do |options|
-        begin
-          redis = Node.redis(options)
-          slots_mapping = redis.cluster("slots").group_by{|x| x[2]}
-          @pool.delete_except!(slots_mapping.keys)
-          slots_mapping.each do |host, infos|
-            slots_ranges = infos.map {|x| x[0]..x[1] }
-            @pool.add_node!({host: host[0], port: host[1]}, slots_ranges)
+      @mutex.synchronize do
+        @startup_hosts.each do |options|
+          begin
+            redis = Node.redis(options)
+            slots_mapping = redis.cluster("slots").group_by{|x| x[2]}
+            @pool.delete_except!(slots_mapping.keys)
+            slots_mapping.each do |host, infos|
+              slots_ranges = infos.map {|x| x[0]..x[1] }
+              @pool.add_node!({host: host[0], port: host[1]}, slots_ranges)
+            end
+          rescue
+            next
           end
-        rescue
-          next
+          break
         end
-        break
+        fresh_startup_nodes
       end
-      @locking = false
-      fresh_startup_nodes
     end
 
     def fresh_startup_nodes
