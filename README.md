@@ -32,9 +32,11 @@ rs.set "test", 1
 rs.get "test"
 ```
 
-## Benchmark
+## Benchmark test
 
 A simple benchmark at my macbook, start 4 master nodes (and 4 cold slave nodes), running with one ruby process.
+This only testing redis_cluster can work, not for redis Performance. When I fork 8 ruby process same time and run get command，redis can run 60,000 times at my macbook.
+
 
 ```ruby
 Benchmark.bm do |x|
@@ -56,12 +58,6 @@ Benchmark.bm do |x|
 end
 ```
 
-```ruby
-       user     system      total        real
-   5.140000   1.500000   6.640000 (  7.745466)
-   5.790000   1.750000   7.540000 (  9.767004)
-   5.740000   1.740000   7.480000 (  9.649341)
-```
 
 ## Development
 
