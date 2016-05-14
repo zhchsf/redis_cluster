@@ -35,7 +35,7 @@ rs.get "test"
 ## Benchmark test
 
 A simple benchmark at my macbook, start 4 master nodes (and 4 cold slave nodes), running with one ruby process.
-This only testing redis_cluster can work, not for redis Performance. When I fork 8 ruby process same time and run get command，redis can run 80,000 - 110,000 times at my macbook.
+This only testing redis_cluster can work, not for redis Performance. When I fork 8 ruby process same time and run get command，redis can run 80,000 - 110,000 times per second at my macbook.
 
 
 ```ruby
