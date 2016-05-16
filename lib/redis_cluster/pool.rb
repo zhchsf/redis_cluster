@@ -24,7 +24,7 @@ module RedisCluster
     #   asking
     #   random_node
     def execute(method, args, other_options)
-      return keys(args.first) if Configuration::SUPPORT_MULTI_NODE_METHODS.include?(method.to_s)
+      return send(method, args.first) if Configuration::SUPPORT_MULTI_NODE_METHODS.include?(method.to_s)
 
       key = key_by_command(method, args)
       raise NotSupportError if key.nil?
