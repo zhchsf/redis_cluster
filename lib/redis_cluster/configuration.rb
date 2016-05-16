@@ -12,7 +12,7 @@ module RedisCluster
         hmset mapped_hmset hget hmget mapped_hmget hdel hexists hincrby hincrbyfloat hkeys hvals hgetall publish pfadd
       )
 
-    # TODO: methods for each node
+    SUPPORT_MULTI_NODE_METHODS = %w(keys)
   end
 
 end

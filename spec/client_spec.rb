@@ -51,9 +51,6 @@ describe "client" do
       redis_7006 = double("7006")
       allow(redis_7006).to receive(:get).and_return(@value)
       @redis.instance_variable_get("@pool").nodes.find {|node| node.instance_variable_get("@options")[:port] == 7006 }.instance_variable_set("@connection", redis_7006)
-
-      # expect_any_instance_of(Redis).to receive(:get).once.and_raise("MOVED 15495 127.0.0.1:7006")
-      # expect_any_instance_of(Redis).to receive(:get).and_return("ok wang")
     end
 
     it "redetect nodes and get right redis value" do
@@ -61,6 +58,29 @@ describe "client" do
 
       node_7006 = @redis.instance_variable_get("@pool").nodes.find {|node| node.instance_variable_get("@options")[:port] == 7006 }
       expect(node_7006.has_slot? 15495).to be_truthy
+    end
+  end
+
+  describe "multi nodes command" do
+    context "keys with 'test*'" do
+      before :each do
+        [[7002, []], [7003, ['test111', 'test222']], [7004, []], [7006, ['test333']]].each do |port , values|
+          redis_obj = double(port)
+          allow(redis_obj).to receive(:keys).and_return(values)
+          @redis.instance_variable_get("@pool").nodes.find {|node| node.instance_variable_get("@options")[:port] == port }.instance_variable_set("@connection", redis_obj)
+        end
+        @keys = @redis.keys "test*"
+      end
+
+      it "has 3 keys" do
+        expect(@keys.length).to eq 3
+      end
+
+      it "include all node keys" do
+        ['test111', 'test222', 'test333'].each do |key|
+          expect(@keys).to include key
+        end
+      end
     end
   end
 end
