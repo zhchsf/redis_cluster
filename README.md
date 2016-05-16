@@ -32,6 +32,11 @@ rs.set "test", 1
 rs.get "test"
 ```
 
+now support keys command with scanning all nodes:
+```ruby
+rs.keys 'test*'
+```
+
 ## Benchmark test
 
 A simple benchmark at my macbook, start 4 master nodes (and 4 cold slave nodes), running with one ruby process.
