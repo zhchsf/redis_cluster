@@ -38,13 +38,13 @@ module RedisCluster
     end
 
     Configuration::SUPPORT_SINGLE_NODE_METHODS.each do |method_name|
-      define_method method_name do |*args|
+      define_method method_name do |*args, &block|
         execute(method_name, args, &block)
       end
     end
 
     def method_missing(method, *args, &block)
-      execute(method, args)
+      execute(method, args, &block)
     end
 
     private

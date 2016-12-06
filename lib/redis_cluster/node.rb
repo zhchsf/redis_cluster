@@ -30,8 +30,8 @@ module RedisCluster
       execute(:asking)
     end
 
-    def execute(method, args)
-      connection.public_send(method, *args)
+    def execute(method, args, &block)
+      connection.public_send(method, *args, &block)
     end
 
     def connection
