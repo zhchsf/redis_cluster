@@ -11,7 +11,7 @@ module RedisCluster
       reload_pool_nodes
     end
 
-    def execute(method, args)
+    def execute(method, args, &block)
       ttl = Configuration::REQUEST_TTL
       asking = false
       try_random_node = false
@@ -19,7 +19,7 @@ module RedisCluster
       while ttl > 0
         ttl -= 1
         begin
-          return @pool.execute(method, args, {asking: asking, random_node: try_random_node})
+          return @pool.execute(method, args, {asking: asking, random_node: try_random_node}, &block)
         rescue Errno::ECONNREFUSED, Redis::TimeoutError, Redis::CannotConnectError, Errno::EACCES
           try_random_node = true
           sleep 0.1 if ttl < Configuration::REQUEST_TTL/2
@@ -39,7 +39,7 @@ module RedisCluster
 
     Configuration::SUPPORT_SINGLE_NODE_METHODS.each do |method_name|
       define_method method_name do |*args|
-        execute(method_name, args)
+        execute(method_name, args, &block)
       end
     end
 
