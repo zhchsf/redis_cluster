@@ -1,5 +1,6 @@
 # RedisCluster
 
+![travis ci](https://travis-ci.org/zhchsf/redis_cluster.svg?branch=master)
 RedisCluster for ruby is rewrited from [https://github.com/antirez/redis-rb-cluster](https://github.com/antirez/redis-rb-cluster)
 
 Now is developing, only support single node methods, and not use in any production environments.
