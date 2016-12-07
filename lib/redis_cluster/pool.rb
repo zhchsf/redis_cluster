@@ -23,7 +23,7 @@ module RedisCluster
     # other_options:
     #   asking
     #   random_node
-    def execute(method, args, other_options)
+    def execute(method, args, other_options, &block)
       return send(method, args.first) if Configuration::SUPPORT_MULTI_NODE_METHODS.include?(method.to_s)
 
       key = key_by_command(method, args)
@@ -31,7 +31,7 @@ module RedisCluster
 
       node = other_options[:random_node] ? random_node : node_by(key)
       node.asking if other_options[:asking]
-      node.execute(method, args)
+      node.execute(method, args, &block)
     end
 
     def keys(glob = "*")
