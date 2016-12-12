@@ -60,6 +60,9 @@ module RedisCluster
               slots_ranges = infos.map {|x| x[0]..x[1] }
               @pool.add_node!({host: host[0], port: host[1]}, slots_ranges)
             end
+          rescue Redis::CommandError => e
+            raise e if e.message =~ /cluster\ support\ disabled$/
+            next
           rescue
             next
           end

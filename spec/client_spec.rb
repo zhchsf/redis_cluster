@@ -83,4 +83,18 @@ describe "client" do
       end
     end
   end
+
+  describe "errors" do
+    context "node cluster support disabled" do
+      before do
+        error = Redis::CommandError.new('ERR This instance has cluster support disabled')
+        allow_any_instance_of(Redis).to receive(:cluster).and_raise(error)
+      end
+
+      it "raise Redis::CommandError" do
+        hosts = [{host: '127.0.0.1', port: '7000'}]
+        expect{ RedisCluster::Client.new(hosts) }.to raise_error Redis::CommandError
+      end
+    end
+  end
 end
