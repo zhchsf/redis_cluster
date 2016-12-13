@@ -2,6 +2,8 @@
 
 ![travis ci](https://travis-ci.org/zhchsf/redis_cluster.svg?branch=master)
 
+First see: [https://redis.io/topics/cluster-tutorial](https://redis.io/topics/cluster-tutorial)
+
 RedisCluster for ruby is rewrited from [https://github.com/antirez/redis-rb-cluster](https://github.com/antirez/redis-rb-cluster)
 
 Now is developing, only support single node methods, and not use in any production environments.
@@ -25,7 +27,7 @@ Or install it yourself as:
 
 ## Usage
 
-First you need to configure redis cluster with some nodes!
+First you need to configure redis cluster with some nodes! Please see: [https://redis.io/topics/cluster-tutorial](https://redis.io/topics/cluster-tutorial)
 
 ```ruby
 hosts = [{host: '127.0.0.1', port: 7000}, {host: '127.0.0.1', port: 7001}]  # don't need all, gem can auto detect all nodes, and process failover if some master nodes down
