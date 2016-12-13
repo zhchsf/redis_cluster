@@ -8,7 +8,7 @@ module RedisCluster
       @startup_hosts = startup_hosts
       @pool = Pool.new
       @mutex = Mutex.new
-      reload_pool_nodes
+      reload_pool_nodes(true)
     end
 
     def execute(method, args, &block)
@@ -49,7 +49,7 @@ module RedisCluster
 
     private
 
-    def reload_pool_nodes
+    def reload_pool_nodes(raise_error = false)
       @mutex.synchronize do
         @startup_hosts.each do |options|
           begin
@@ -61,7 +61,7 @@ module RedisCluster
               @pool.add_node!({host: host[0], port: host[1]}, slots_ranges)
             end
           rescue Redis::CommandError => e
-            raise e if e.message =~ /cluster\ support\ disabled$/
+            raise e if raise_error && e.message =~ /cluster\ support\ disabled$/
             next
           rescue
             next
