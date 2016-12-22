@@ -9,7 +9,7 @@ module RedisCluster
         incrbyfloat set setex psetex setnx get setrange getrange setbit getbit append bitcount bitpos getset strlen [] []= llen lpush lpushx rpush
         rpushx lpop rpop blpop brpop lindex linsert lrange lrem lset ltrim scard sadd srem spop srandmember sismember smembers zcard zadd zincrby 
         zrem zscore zrange zrevrange zrank zrevrank zremrangebyrank zrangebyscore zrevrangebyscore zremrangebyscore zcount hlen hset hsetnx 
-        hmset mapped_hmset hget hmget mapped_hmget hdel hexists hincrby hincrbyfloat hkeys hvals hgetall publish pfadd
+        hmset mapped_hmset hget hmget mapped_hmget hdel hexists hincrby hincrbyfloat hkeys hvals hgetall publish pfadd multi
       )
 
     SUPPORT_MULTI_NODE_METHODS = %w(keys)
