@@ -51,7 +51,7 @@ module RedisCluster
 
     def key_by_command(method, args)
       case method.to_s.downcase
-      when 'info', 'multi', 'exec', 'slaveof', 'config', 'shutdown'
+      when 'info', 'exec', 'slaveof', 'config', 'shutdown'
         nil
       else
         return args.first
