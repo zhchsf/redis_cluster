@@ -24,7 +24,7 @@ module RedisCluster
     #   asking
     #   random_node
     def execute(method, args, other_options, &block)
-      return send(method, args.first) if Configuration::SUPPORT_MULTI_NODE_METHODS.include?(method.to_s)
+      return send(method, args, &block) if Configuration::SUPPORT_MULTI_NODE_METHODS.include?(method.to_s)
 
       key = key_by_command(method, args)
       raise NotSupportError if key.nil?
@@ -34,8 +34,13 @@ module RedisCluster
       node.execute(method, args, &block)
     end
 
-    def keys(glob = "*")
+    def keys args, &block
+      glob = args.first
       on_each_node(:keys, glob).flatten
+    end
+
+    def multi args, &block
+      random_node.execute :multi, args, &block
     end
 
     private
