@@ -8,7 +8,7 @@ module RedisCluster
       @startup_hosts = startup_hosts
       @pool = Pool.new
       @mutex = Mutex.new
-      reload_pool_nodes
+      reload_pool_nodes(true)
     end
 
     def execute(method, args, &block)
@@ -49,8 +49,9 @@ module RedisCluster
 
     private
 
-    def reload_pool_nodes
+    def reload_pool_nodes(raise_error = false)
       return @pool.add_node!(@startup_hosts, [(0..Configuration::HASH_SLOTS)]) unless @startup_hosts.is_a? Array
+
       @mutex.synchronize do
         @startup_hosts.each do |options|
           begin
@@ -61,6 +62,9 @@ module RedisCluster
               slots_ranges = infos.map {|x| x[0]..x[1] }
               @pool.add_node!({host: host[0], port: host[1]}, slots_ranges)
             end
+          rescue Redis::CommandError => e
+            raise e if raise_error && e.message =~ /cluster\ support\ disabled$/
+            next
           rescue
             next
           end
