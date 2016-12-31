@@ -50,6 +50,8 @@ module RedisCluster
     private
 
     def reload_pool_nodes(raise_error = false)
+      return @pool.add_node!(@startup_hosts, [(0..Configuration::HASH_SLOTS)]) unless @startup_hosts.is_a? Array
+
       @mutex.synchronize do
         @startup_hosts.each do |options|
           begin
