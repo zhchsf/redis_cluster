@@ -42,8 +42,9 @@ rs.keys 'test*'
 
 limited support commands: pipelined, multi
 ```ruby
-# you must ensure keys at one solt: use one key or hash tags
-# if you don't, not raise any errors now
+# Only support pipeline commands to one redis node once
+# You must ensure keys at one slot: use same key or hash tags
+# If you don't, not raise any errors now
 rs.pipelined do
   rs.set "{foo}one", 1
   rs.set "{foo}two", 2
