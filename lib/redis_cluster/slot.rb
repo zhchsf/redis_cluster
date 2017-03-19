@@ -3,7 +3,7 @@ module RedisCluster
   class Slot
     KEY_PATTERN = /\{([^\}]*)\}/
 
-    # key "{xxx}ooo" will calculate "xxx" for slot
+    # has tag key "{xxx}ooo" will calculate "xxx" for slot
     # if key is "{}dddd", calculate "{}dddd" for slot
     def self.slot_by(key)
       key = key.to_s

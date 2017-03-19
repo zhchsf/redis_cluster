@@ -34,13 +34,19 @@ module RedisCluster
       node.execute(method, args, &block)
     end
 
-    def keys args, &block
+    def keys(args, &block)
       glob = args.first
       on_each_node(:keys, glob).flatten
     end
 
-    def multi args, &block
+    # Now mutli & pipelined conmand must control keys at same slot yourself
+    # You can use hash tag: '{foo}1'
+    def multi(args, &block)
       random_node.execute :multi, args, &block
+    end
+
+    def pipelined(args, &block)
+      random_node.execute :pipelined, args, &block
     end
 
     private

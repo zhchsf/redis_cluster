@@ -6,8 +6,6 @@ First see: [https://redis.io/topics/cluster-tutorial](https://redis.io/topics/cl
 
 RedisCluster for ruby is rewrited from [https://github.com/antirez/redis-rb-cluster](https://github.com/antirez/redis-rb-cluster)
 
-Now is developing, only support single node methods, and not use in any production environments.
-
 
 ## Installation
 
@@ -30,7 +28,8 @@ Or install it yourself as:
 First you need to configure redis cluster with some nodes! Please see: [https://redis.io/topics/cluster-tutorial](https://redis.io/topics/cluster-tutorial)
 
 ```ruby
-hosts = [{host: '127.0.0.1', port: 7000}, {host: '127.0.0.1', port: 7001}]  # don't need all, gem can auto detect all nodes, and process failover if some master nodes down
+# don't need all, gem can auto detect all nodes, and process failover if some master nodes down
+hosts = [{host: '127.0.0.1', port: 7000}, {host: '127.0.0.1', port: 7001}]
 rs = RedisCluster.new hosts
 rs.set "test", 1
 rs.get "test"
@@ -39,6 +38,16 @@ rs.get "test"
 now support keys command with scanning all nodes:
 ```ruby
 rs.keys 'test*'
+```
+
+limited support commands: pipelined, multi
+```ruby
+# you must ensure keys at one solt: use one key or hash tags
+# if you don't, not raise any errors now
+rs.pipelined do
+  rs.set "{foo}one", 1
+  rs.set "{foo}two", 2
+end
 ```
 
 ## Benchmark test
