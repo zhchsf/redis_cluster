@@ -35,6 +35,11 @@ rs.set "test", 1
 rs.get "test"
 ```
 
+If masterauth & requirepass configed, you can initialize below:
+```ruby
+RedisCluster.new hosts, password: 'password'
+```
+
 now support keys command with scanning all nodes:
 ```ruby
 rs.keys 'test*'
