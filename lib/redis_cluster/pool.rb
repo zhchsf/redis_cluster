@@ -1,15 +1,16 @@
 module RedisCluster
 
   class Pool
-    attr_reader :nodes
+    attr_reader :nodes, :global_configs
 
-    def initialize
+    def initialize(global_configs = {})
       @nodes = []
+      @global_configs = global_configs
     end
 
     # TODO: type check
     def add_node!(node_options, slots)
-      new_node = Node.new(node_options)
+      new_node = Node.new(global_configs.merge(node_options))
       node = @nodes.find {|n| n.name == new_node.name } || new_node
       node.slots = slots
       @nodes.push(node).uniq!

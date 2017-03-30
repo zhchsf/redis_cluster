@@ -6,7 +6,7 @@ module RedisCluster
 
     def initialize(startup_hosts, global_configs = {})
       @startup_hosts = startup_hosts
-      @pool = Pool.new
+      @pool = Pool.new(global_configs)
       @mutex = Mutex.new
       reload_pool_nodes(true)
     end
@@ -55,7 +55,7 @@ module RedisCluster
       @mutex.synchronize do
         @startup_hosts.each do |options|
           begin
-            redis = Node.redis(options)
+            redis = Node.redis(@pool.global_configs.merge(options))
             slots_mapping = redis.cluster("slots").group_by{|x| x[2]}
             @pool.delete_except!(slots_mapping.keys)
             slots_mapping.each do |host, infos|
@@ -64,6 +64,7 @@ module RedisCluster
             end
           rescue Redis::CommandError => e
             raise e if raise_error && e.message =~ /cluster\ support\ disabled$/
+            raise e if e.message =~ /NOAUTH\ Authentication\ required/
             next
           rescue
             next
