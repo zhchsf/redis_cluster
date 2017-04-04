@@ -56,6 +56,22 @@ rs.pipelined do
 end
 ```
 
+script, eval, evalsha
+```ruby
+# script commands will run on all nodes
+rs.script :load, "return redis.call('get', KEYS[1])"
+rs.script :exists, '4e6d8fc8bb01276962cce5371fa795a7763657ae'
+rs.script :flush
+
+# eval/evalsha must executed at one node with hash tag keys in same slot
+# and must use KEYS to fetch keys in lua script
+rs.eval "return redis.call('get', KEYS[1]) + ARGV[1]", [:test], [3]
+rs.evalsha '727fc2fb7c0f11ec134d998654e3dadaacf31a97', [:test], [5]
+
+# if lua script don't depend on any keys and argvs, you also need execute with a key
+rs.eval "return 'hello redis!'", [:foo]
+```
+
 ## Benchmark test
 
 A simple benchmark at my macbook, start 4 master nodes (and 4 cold slave nodes), running with one ruby process.

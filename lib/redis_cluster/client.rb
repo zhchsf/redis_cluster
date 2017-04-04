@@ -1,4 +1,4 @@
-require "thread"
+require 'thread'
 
 module RedisCluster
 
@@ -27,8 +27,8 @@ module RedisCluster
           err_code = e.to_s.split.first
           raise e unless %w(MOVED ASK).include?(err_code)
 
-          if err_code == "ASK"
-             asking = true
+          if err_code == 'ASK'
+            asking = true
           else
             reload_pool_nodes
             sleep 0.1 if ttl < Configuration::REQUEST_TTL/2

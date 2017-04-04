@@ -11,14 +11,14 @@ module RedisCluster
     # TODO: type check
     def add_node!(node_options, slots)
       new_node = Node.new(global_configs.merge(node_options))
-      node = @nodes.find {|n| n.name == new_node.name } || new_node
+      node = @nodes.find { |n| n.name == new_node.name } || new_node
       node.slots = slots
       @nodes.push(node).uniq!
     end
 
     def delete_except!(master_hosts)
-      names = master_hosts.map {|host, port| "#{host}:#{port}" }
-      @nodes.delete_if {|n| !names.include?(n.name) }
+      names = master_hosts.map { |host, port| "#{host}:#{port}" }
+      @nodes.delete_if { |n| !names.include?(n.name) }
     end
 
     # other_options:
@@ -40,6 +40,10 @@ module RedisCluster
       on_each_node(:keys, glob).flatten
     end
 
+    def script(args, &block)
+      on_each_node(:script, *args).flatten
+    end
+
     # Now mutli & pipelined conmand must control keys at same slot yourself
     # You can use hash tag: '{foo}1'
     def multi(args, &block)
@@ -54,7 +58,7 @@ module RedisCluster
 
     def node_by(key)
       slot = Slot.slot_by(key)
-      @nodes.find {|node| node.has_slot?(slot) }
+      @nodes.find { |node| node.has_slot?(slot) }
     end
 
     def random_node
@@ -65,6 +69,10 @@ module RedisCluster
       case method.to_s.downcase
       when 'info', 'exec', 'slaveof', 'config', 'shutdown'
         nil
+      when 'eval', 'evalsha'
+        raise KeyNotAppointError if args[1].nil? || args[1].empty?
+        raise KeysNotAtSameSlotError unless Slot.at_one?(args[1])
+        return args[1][0]
       else
         return args.first
       end
