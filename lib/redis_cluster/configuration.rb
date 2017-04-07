@@ -18,6 +18,10 @@ module RedisCluster
     ).freeze
 
     SUPPORT_MULTI_NODE_METHODS = %w(keys script multi pipelined).freeze
+
+    def self.method_names
+      SUPPORT_SINGLE_NODE_METHODS + SUPPORT_MULTI_NODE_METHODS
+    end
   end
 
 end

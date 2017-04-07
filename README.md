@@ -28,12 +28,14 @@ Or install it yourself as:
 First you need to configure redis cluster with some nodes! Please see: [https://redis.io/topics/cluster-tutorial](https://redis.io/topics/cluster-tutorial)
 
 ```ruby
-# don't need all, gem can auto detect all nodes, and process failover if some master nodes down
+# Don't need all, gem can auto detect all nodes, and process failover if some master nodes down
 hosts = [{host: '127.0.0.1', port: 7000}, {host: '127.0.0.1', port: 7001}]
 rs = RedisCluster.new hosts
 rs.set "test", 1
 rs.get "test"
 ```
+
+At development environment with single redis node, you can set hosts a hash value: {host: 'xx', port: 6379}.
 
 If masterauth & requirepass configed, you can initialize below:
 ```ruby
@@ -74,20 +76,16 @@ rs.eval "return 'hello redis!'", [:foo]
 
 ## Benchmark test
 
-A simple benchmark at my macbook, start 4 master nodes (and 4 cold slave nodes), running with one ruby process.
-This only testing redis_cluster can work, not for redis Performance. When I fork 8 ruby process same time and run get command，redis can run 80,000 - 110,000 times per second at my macbook.
-
-
 ```ruby
 Benchmark.bm do |x|
   x.report do
     1.upto(100_000).each do |i|
-      redis.get "test#{i}"
+      redis.set "test#{i}", i
     end
   end
   x.report do
     1.upto(100_000).each do |i|
-      redis.set "test#{i}", i
+      redis.get "test#{i}"
     end
   end
   x.report do

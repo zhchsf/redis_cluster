@@ -22,7 +22,7 @@ module RedisCluster
           return @pool.execute(method, args, {asking: asking, random_node: try_random_node}, &block)
         rescue Errno::ECONNREFUSED, Redis::TimeoutError, Redis::CannotConnectError, Errno::EACCES
           try_random_node = true
-          sleep 0.1 if ttl < Configuration::REQUEST_TTL/2
+          sleep 0.1 if ttl < Configuration::REQUEST_TTL / 2
         rescue => e
           err_code = e.to_s.split.first
           raise e unless %w(MOVED ASK).include?(err_code)
@@ -31,13 +31,13 @@ module RedisCluster
             asking = true
           else
             reload_pool_nodes
-            sleep 0.1 if ttl < Configuration::REQUEST_TTL/2
+            sleep 0.1 if ttl < Configuration::REQUEST_TTL / 2
           end
         end
       end
     end
 
-    Configuration::SUPPORT_SINGLE_NODE_METHODS.each do |method_name|
+    Configuration.method_names.each do |method_name|
       define_method method_name do |*args, &block|
         execute(method_name, args, &block)
       end
