@@ -1,6 +1,10 @@
 require "spec_helper"
 
 describe "client" do
+  let(:pool_nodes) {@redis.instance_variable_get("@pool").nodes}
+  let(:pool_hosts) {pool_nodes.map{|n| n.host_hash[:host]}}
+  let(:pool_ports) {pool_nodes.map{|n| n.host_hash[:port]}}
+
   before do
     cluster_nodes = [
       [1000, 5460, ["127.0.0.1", 7003], ["127.0.0.1", 7000]], 
@@ -14,18 +18,27 @@ describe "client" do
     @redis = RedisCluster::Client.new(hosts)
   end
 
-  context "nodes auto detect" do
-    let(:nodes) {@redis.instance_variable_get("@pool").nodes}
+  context "standalone Redis" do
+    it "initializes single node pool" do
+      # Note that unlike many examples, this `host` is a Hash instead of an
+      # array which directly indicates to the gem that we want a standalone
+      # Redis.
+      host = {host: '127.0.0.1', port: '7000'}
 
+      @redis = RedisCluster::Client.new(host)
+      expect(pool_hosts).to eq(["127.0.0.1"])
+      expect(pool_ports).to eq(["7000"])
+    end
+  end
+
+  context "nodes auto detect" do
     it "will get host 127.0.0.1 in pool" do
-      hosts = nodes.map{|n| n.host_hash[:host] }
-      expect(hosts).to include "127.0.0.1"
+      expect(pool_hosts).to include "127.0.0.1"
     end
 
     it "will get master port 7003 7006 7002 7004" do
-      ports = nodes.map{|n| n.host_hash[:port] }
       [7003, 7006, 7002, 7004].each do |port|
-        expect(ports).to include port
+        expect(pool_ports).to include port
       end
     end
   end
@@ -56,7 +69,7 @@ describe "client" do
     it "redetect nodes and get right redis value" do
       expect(@redis.get("a")).to eq @value
 
-      node_7006 = @redis.instance_variable_get("@pool").nodes.find {|node| node.instance_variable_get("@options")[:port] == 7006 }
+      node_7006 = pool_nodes.find {|node| node.instance_variable_get("@options")[:port] == 7006 }
       expect(node_7006.has_slot? 15495).to be_truthy
     end
   end
@@ -67,7 +80,7 @@ describe "client" do
         [[7002, []], [7003, ['test111', 'test222']], [7004, []], [7006, ['test333']]].each do |port , values|
           redis_obj = double(port)
           allow(redis_obj).to receive(:keys).and_return(values)
-          @redis.instance_variable_get("@pool").nodes.find {|node| node.instance_variable_get("@options")[:port] == port }.instance_variable_set("@connection", redis_obj)
+          pool_nodes.find {|node| node.instance_variable_get("@options")[:port] == port }.instance_variable_set("@connection", redis_obj)
         end
         @keys = @redis.keys "test*"
       end
@@ -94,6 +107,13 @@ describe "client" do
       it "raise Redis::CommandError" do
         hosts = [{host: '127.0.0.1', port: '7000'}]
         expect{ RedisCluster::Client.new(hosts) }.to raise_error Redis::CommandError
+      end
+
+      it "initializes single node pool when force_cluster is false" do
+        hosts = [{host: '127.0.0.1', port: '7000'}]
+        @redis = RedisCluster::Client.new(hosts, force_cluster: false)
+        expect(pool_hosts).to eq(["127.0.0.1"])
+        expect(pool_ports).to eq(["7000"])
       end
     end
   end
