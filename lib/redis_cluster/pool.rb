@@ -28,7 +28,7 @@ module RedisCluster
       return send(method, args, &block) if Configuration::SUPPORT_MULTI_NODE_METHODS.include?(method.to_s)
 
       key = key_by_command(method, args)
-      raise NotSupportError if key.nil?
+      raise CommandNotSupportedError.new(method.upcase) if key.nil?
 
       node = other_options[:random_node] ? random_node : node_by(key)
       node.asking if other_options[:asking]
@@ -70,8 +70,14 @@ module RedisCluster
       when 'info', 'exec', 'slaveof', 'config', 'shutdown'
         nil
       when 'eval', 'evalsha'
-        raise KeyNotAppointError if args[1].nil? || args[1].empty?
-        raise KeysNotAtSameSlotError unless Slot.at_one?(args[1])
+        if args[1].nil? || args[1].empty?
+          raise KeysNotSpecifiedError.new(method.upcase)
+        end
+
+        unless Slot.at_one?(args[1])
+          raise KeysNotAtSameSlotError.new(args[1])
+        end
+
         return args[1][0]
       else
         return args.first
