@@ -134,4 +134,47 @@ describe "client" do
       end
     end
   end
+
+  describe "#reconnect" do
+    it "reconnects clients" do
+      # Expect every connection to receive a close
+      pool_nodes.each do |node|
+        expect(node.connection).to receive(:close)
+      end
+
+      @redis.reconnect
+
+      # When reconnecting, the client will reuse the hosts that it received
+      # from `CLUSTER SLOTS`. We therefore expect the full range of ports
+      # instead of just the ones that we configured originally.
+      [7003, 7006, 7002, 7004].each do |port|
+        expect(pool_ports).to include port
+      end
+    end
+
+    it "reconnects clients and uses original hosts configuration" do
+      # Expect every connection to receive a close
+      pool_nodes.each do |node|
+        expect(node.connection).to receive(:close)
+      end
+
+      # Currently the client is already loaded with the full set of hosts that
+      # stubbed in the global `before` block. Here we restub `Redis` to only
+      # return a single host instead. The client will get this result when it
+      # reconnects, and that allows us to verify that it's indeed doing a new
+      # lookup instead of reusing its previously existing set of hosts.
+      cluster_nodes = [
+        [0, RedisCluster::Configuration::HASH_SLOTS, ["127.0.0.1", "7000"]],
+      ]
+      allow_any_instance_of(Redis).to receive(:cluster).and_return(cluster_nodes)
+
+      @redis.reconnect(use_initial_hosts: true)
+
+      # When reconnecting, the client will reuse the hosts that it received
+      # from `CLUSTER SLOTS`. We therefore expect the full range of ports
+      # instead of just the ones that we configured originally.
+      expect(pool_hosts).to eq(["127.0.0.1"])
+      expect(pool_ports).to eq(["7000"])
+    end
+  end
 end
