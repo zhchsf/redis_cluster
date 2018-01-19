@@ -1,6 +1,8 @@
 module RedisCluster
 
   class Node
+    attr_accessor :options
+
     # slots is a range array: [1..100, 300..500]
     attr_accessor :slots
 
@@ -35,7 +37,7 @@ module RedisCluster
     end
 
     def connection
-      @connection ||= self.class.redis(@options)
+      @connection ||= self.class.redis(options)
     end
 
     def self.redis(options)
