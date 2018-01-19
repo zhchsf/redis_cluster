@@ -13,6 +13,14 @@ module RedisCluster
       # the option existed
       @force_cluster = configs.delete(:force_cluster) { |_key| true }
 
+      # The number of times to retry a failed execute. Redis errors, `MOVE`, or
+      # `ASK` are all considered failures that will count towards this tally. A
+      # count of at least 2 is probably sensible because if a node disappears
+      # the first try will be a Redis error, the second try retry will probably
+      # be a `MOVE` (whereupon the node pool is reloaded), and it will take
+      # until the third try to succeed.
+      @retry_count = configs.delete(:retry_count) { |_key| 3 }
+
       # Any leftover configuration goes through to the pool and onto individual
       # Redis clients.
       @pool = Pool.new(configs)
@@ -22,29 +30,48 @@ module RedisCluster
     end
 
     def execute(method, args, &block)
-      ttl = Configuration::REQUEST_TTL
       asking = false
+      last_error = nil
+      retries_left = @retry_count
       try_random_node = false
 
-      while ttl > 0
-        ttl -= 1
+      # We use `>= 0` instead of `> 0` because we decrement this counter on the
+      # first run.
+      while retries_left >= 0
+        retries_left -= 1
+
         begin
           return @pool.execute(method, args, {asking: asking, random_node: try_random_node}, &block)
-        rescue Errno::ECONNREFUSED, Redis::TimeoutError, Redis::CannotConnectError, Errno::EACCES
+
+        rescue Errno::ECONNREFUSED, Redis::TimeoutError, Redis::CannotConnectError, Errno::EACCES => e
+          last_error = e
+
+          # Getting an error while executing may be an indication that we've
+          # lost the node that we were talking to and in that case it makes
+          # sense to try a different node and maybe reload our node pool (if
+          # the new node issues a `MOVE`).
           try_random_node = true
-          sleep 0.1 if ttl < Configuration::REQUEST_TTL / 2
+
         rescue => e
+          last_error = e
+
           err_code = e.to_s.split.first
           raise e unless %w(MOVED ASK).include?(err_code)
 
           if err_code == 'ASK'
             asking = true
           else
+            # `MOVED` indicates a permanent redirect which means that our slot
+            # mappings are stale: reload them.
             reload_pool_nodes(false)
-            sleep 0.1 if ttl < Configuration::REQUEST_TTL / 2
           end
         end
       end
+
+      # If we ran out of retries (the maximum number may have been set to 0),
+      # surface any error that was thrown back to the caller. We'd otherwise
+      # suppress the error, which would return something quite unexpected.
+      raise last_error
     end
 
     Configuration.method_names.each do |method_name|
