@@ -58,7 +58,7 @@ describe "client" do
       allow_any_instance_of(Redis).to receive(:cluster).and_return(cluster_nodes)
 
       redis_7002 = double("7002")
-      allow(redis_7002).to receive(:get).and_raise("MOVED 15495 127.0.0.1:7006")
+      allow(redis_7002).to receive(:get).and_raise(Redis::CommandError.new("MOVED 15495 127.0.0.1:7006"))
       @redis.instance_variable_get("@pool").nodes.find {|node| node.instance_variable_get("@options")[:port] == 7002 }.instance_variable_set("@connection", redis_7002)
 
       redis_7006 = double("7006")
@@ -116,6 +116,28 @@ describe "client" do
         expect(pool_ports).to eq(["7000"])
       end
 
+      it "retries intermittent errors" do
+        cluster_nodes = [
+          [0, RedisCluster::Configuration::HASH_SLOTS, ["127.0.0.1", 7000]],
+        ]
+        allow_any_instance_of(Redis).to receive(:cluster).and_return(cluster_nodes)
+
+        hosts = [{host: '127.0.0.1', port: '7000'}]
+        @redis = RedisCluster::Client.new(hosts, retry_count: 1)
+
+        num_invocations = 0
+        redis_double = double("Redis connection")
+        allow(redis_double).to receive(:get) do
+          num_invocations += 1
+          raise Redis::CannotConnectError if num_invocations == 1
+          "b"
+        end
+        @redis.instance_variable_get("@pool").nodes.
+          each {|node| node.instance_variable_set(:@connection, redis_double)}
+
+        expect(@redis.get("a")).to eq("b")
+      end
+
       it "reraises errors to user after running out of retries" do
         cluster_nodes = [
           [0, RedisCluster::Configuration::HASH_SLOTS, ["127.0.0.1", 7000]],
@@ -126,11 +148,11 @@ describe "client" do
         @redis = RedisCluster::Client.new(hosts, retry_count: 0)
 
         redis_double = double("Redis connection")
-        allow(redis_double).to receive(:get).and_raise(Errno::ECONNREFUSED)
+        allow(redis_double).to receive(:get).and_raise(Redis::CannotConnectError)
         @redis.instance_variable_get("@pool").nodes.
           each {|node| node.instance_variable_set(:@connection, redis_double)}
 
-        expect{ @redis.get("a") }.to raise_error Errno::ECONNREFUSED
+        expect{ @redis.get("a") }.to raise_error Redis::CannotConnectError
       end
     end
   end
