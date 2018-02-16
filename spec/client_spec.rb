@@ -115,6 +115,23 @@ describe "client" do
         expect(pool_hosts).to eq(["127.0.0.1"])
         expect(pool_ports).to eq(["7000"])
       end
+
+      it "reraises errors to user after running out of retries" do
+        cluster_nodes = [
+          [0, RedisCluster::Configuration::HASH_SLOTS, ["127.0.0.1", 7000]],
+        ]
+        allow_any_instance_of(Redis).to receive(:cluster).and_return(cluster_nodes)
+
+        hosts = [{host: '127.0.0.1', port: '7000'}]
+        @redis = RedisCluster::Client.new(hosts, retry_count: 0)
+
+        redis_double = double("Redis connection")
+        allow(redis_double).to receive(:get).and_raise(Errno::ECONNREFUSED)
+        @redis.instance_variable_get("@pool").nodes.
+          each {|node| node.instance_variable_set(:@connection, redis_double)}
+
+        expect{ @redis.get("a") }.to raise_error Errno::ECONNREFUSED
+      end
     end
   end
 end
