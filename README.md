@@ -6,6 +6,7 @@ First see: [https://redis.io/topics/cluster-tutorial](https://redis.io/topics/cl
 
 RedisCluster for ruby is rewrited from [https://github.com/antirez/redis-rb-cluster](https://github.com/antirez/redis-rb-cluster)
 
+Support: Ruby 2.0+
 
 ## Installation
 
