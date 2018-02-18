@@ -4,8 +4,9 @@ module RedisCluster
 
   class Client
 
-    def initialize(startup_hosts, configs = {})
-      @startup_hosts = startup_hosts
+    def initialize(hosts, configs = {})
+      @hosts = hosts.dup
+      @initial_hosts = hosts.dup
 
       # Extract configuration options relevant to Redis Cluster.
 
@@ -84,13 +85,29 @@ module RedisCluster
       execute(method, args, &block)
     end
 
+    # Closes all open connections and reloads the client pool.
+    #
+    # Normally host information from the last time the node pool was reloaded
+    # is used, but if the `use_initial_hosts` is set to `true`, then the client
+    # is completely refreshed and the hosts that were specified when creating
+    # it originally are set instead.
+    def reconnect(use_initial_hosts: false)
+      @hosts = @initial_hosts.dup if use_initial_hosts
+
+      @mutex.synchronize do
+        @pool.nodes.each{|node| node.connection.close}
+        @pool.nodes.clear
+        reload_pool_nodes_unsync(true)
+      end
+    end
+
     private
 
     # Adds only a single node to the client pool and sets it result for the
     # entire space of slots. This is useful when running either a standalone
     # Redis or a single-node Redis Cluster.
     def create_single_node_pool
-      host = @startup_hosts
+      host = @hosts
       if host.is_a?(Array)
         if host.length > 1
           raise ArgumentError, "Can only create single node pool for single host"
@@ -105,11 +122,11 @@ module RedisCluster
     end
 
     def create_multi_node_pool(raise_error)
-      unless @startup_hosts.is_a?(Array)
+      unless @hosts.is_a?(Array)
         raise ArgumentError, "Can only create multi-node pool for multiple hosts"
       end
 
-      @startup_hosts.each do |options|
+      @hosts.each do |options|
         begin
           redis = Node.redis(@pool.global_configs.merge(options))
           slots_mapping = redis.cluster("slots").group_by{|x| x[2]}
@@ -153,21 +170,27 @@ module RedisCluster
     # relevant.
     def reload_pool_nodes(raise_error)
       @mutex.synchronize do
-        if @startup_hosts.is_a?(Array)
-          create_multi_node_pool(raise_error)
-          refresh_startup_nodes
-        else
-          create_single_node_pool
-        end
+        reload_pool_nodes_unsync(raise_error)
       end
     end
 
-    # Refreshes the contents of @startup_hosts based on the hosts currently in
+    # The same as `#reload_pool_nodes`, but doesn't attempt to synchronize on
+    # the mutex. Use this only if you've already got a lock on it.
+    def reload_pool_nodes_unsync(raise_error)
+      if @hosts.is_a?(Array)
+        create_multi_node_pool(raise_error)
+        refresh_startup_nodes
+      else
+        create_single_node_pool
+      end
+    end
+
+    # Refreshes the contents of @hosts based on the hosts currently in
     # the client pool. This is useful because we may have been told about new
     # hosts after running `CLUSTER SLOTS`.
     def refresh_startup_nodes
-      @pool.nodes.each {|node| @startup_hosts.push(node.host_hash) }
-      @startup_hosts.uniq!
+      @pool.nodes.each {|node| @hosts.push(node.host_hash) }
+      @hosts.uniq!
     end
 
   end # end client
