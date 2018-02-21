@@ -91,7 +91,9 @@ module RedisCluster
     # is used, but if the `use_initial_hosts` is set to `true`, then the client
     # is completely refreshed and the hosts that were specified when creating
     # it originally are set instead.
-    def reconnect(use_initial_hosts: false)
+    def reconnect(options = {})
+      use_initial_hosts = options.fetch(:use_initial_hosts, false)
+
       @hosts = @initial_hosts.dup if use_initial_hosts
 
       @mutex.synchronize do
