@@ -14,6 +14,11 @@ module RedisCluster
       # the option existed
       @force_cluster = configs.delete(:force_cluster) { |_key| true }
 
+      # An optional logger. Should respond like the standard Ruby `Logger`:
+      #
+      # http://ruby-doc.org/stdlib-2.4.0/libdoc/logger/rdoc/Logger.html
+      @logger = configs.delete(:logger) { |_key| nil }
+
       # The number of times to retry a failed execute. Redis errors, `MOVE`, or
       # `ASK` are all considered failures that will count towards this tally. A
       # count of at least 2 is probably sensible because if a node disappears
@@ -53,11 +58,26 @@ module RedisCluster
           # the new node issues a `MOVE`).
           try_random_node = true
 
+          unless @logger.nil?
+            @logger.error("redis_cluster: Received error: #{e} retries_left=#{retries_left}")
+          end
+
         rescue => e
           last_error = e
 
           err_code = e.to_s.split.first
-          raise e unless %w(MOVED ASK).include?(err_code)
+
+          unless %w(MOVED ASK).include?(err_code)
+            unless @logger.nil?
+              @logger.error("redis_cluster: Received error: #{e} retries_left=#{retries_left}")
+            end
+
+            raise e
+          end
+
+          unless @logger.nil?
+            @logger.debug("redis_cluster: Received ASK/MOVED: #{e} retries_left=#{retries_left}")
+          end
 
           if err_code == 'ASK'
             asking = true
@@ -119,6 +139,10 @@ module RedisCluster
       end
 
       @pool.add_node!(host, [(0..Configuration::HASH_SLOTS)])
+
+      unless @logger.nil?
+        @logger.info("redis_cluster: Initialized single node pool: #{host}")
+      end
     end
 
     def create_multi_node_pool(raise_error)
@@ -149,18 +173,29 @@ module RedisCluster
             end
           end
 
+          unless @logger.nil?
+            @logger.error("redis_cluster: Received error: #{e}")
+          end
+
           raise e if e.message =~ /NOAUTH\ Authentication\ required/
 
-          # TODO: log error for visibility
           next
-        rescue
-          # TODO: log error for visibility
+        rescue => e
+          unless @logger.nil?
+            @logger.error("redis_cluster: Received error: #{e}")
+          end
+
           next
         end
 
         # We only need to see a `CLUSTER SLOTS` result from a single host, so
         # break after one success.
         break
+      end
+
+      unless @logger.nil?
+        mappings = @pool.nodes.map{|node| "#{node.slots} -> #{node.options}"}
+        @logger.info("redis_cluster: Initialized multi-node pool: #{mappings}")
       end
     end
 
