@@ -54,7 +54,29 @@ module RedisCluster
       random_node.execute :pipelined, args, &block
     end
 
+    # Implements scan across all nodes in the pool.  Encodes the current node in the returned cursor.
+    # Cursors will behave strangely if the node list changes during iteration.
+    def scan(args)
+      cursor = args.first
+      options = args[1] || {}
+      orig_cursor, node_index = decode_scan_cursor(cursor)
+      next_cursor, result = @nodes[node_index].execute("scan", [orig_cursor.to_s, options])
+      [ encode_scan_cursor(next_cursor.to_i, node_index), result ]
+    end
+
     private
+
+    def encode_scan_cursor(scan_cursor, targeted_node)
+      if scan_cursor == 0
+        ((targeted_node + 1) % @nodes.size).to_s
+      else
+        ((scan_cursor * @nodes.size) + targeted_node).to_s
+      end
+    end
+
+    def decode_scan_cursor(cursor)
+      cursor.to_i.divmod(@nodes.size)
+    end
 
     def node_by(key)
       slot = Slot.slot_by(key)
