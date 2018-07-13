@@ -54,28 +54,32 @@ module RedisCluster
       random_node.execute :pipelined, args, &block
     end
 
-    # Implements scan across all nodes in the pool.  Encodes the current node in the returned cursor.
+    # Implements scan across all nodes in the pool.
     # Cursors will behave strangely if the node list changes during iteration.
     def scan(args)
-      cursor = args.first
+      scan_cursor = args.first
       options = args[1] || {}
-      orig_cursor, node_index = decode_scan_cursor(cursor)
-      next_cursor, result = @nodes[node_index].execute("scan", [orig_cursor.to_s, options])
-      [ encode_scan_cursor(next_cursor.to_i, node_index), result ]
+      node_cursor, node_index = decode_scan_cursor(scan_cursor)
+      next_node_cursor, result = @nodes[node_index].execute("scan", [node_cursor, options])
+      [encode_next_scan_cursor(next_node_cursor, node_index), result]
     end
 
     private
 
-    def encode_scan_cursor(scan_cursor, targeted_node)
-      if scan_cursor == 0
-        ((targeted_node + 1) % @nodes.size).to_s
+    def encode_next_scan_cursor(next_node_cursor, node_index)
+      if next_node_cursor == '0'
+        # '0' indicates the end of iteration.  Advance the node index and
+        # start at the '0' position on the next node.  If this was the last node,
+        # loop around and return '0' to indicate iteration is done.
+        ((node_index + 1) % @nodes.size)
       else
-        ((scan_cursor * @nodes.size) + targeted_node).to_s
-      end
+        ((next_node_cursor.to_i * @nodes.size) + node_index)
+      end.to_s # Cursors are strings
     end
 
     def decode_scan_cursor(cursor)
-      cursor.to_i.divmod(@nodes.size)
+      node_cursor, node_index = cursor.to_i.divmod(@nodes.size)
+      [node_cursor.to_s, node_index] # Cursors are strings.
     end
 
     def node_by(key)

@@ -203,7 +203,7 @@ describe "client" do
 
   describe "keys" do
     it "supports a default argument" do
-      allow(pool).to receive(:execute).with("keys", ["*"], {:asking=>false, :random_node=>false}).and_return(["abc", "def"])
+      allow(pool).to receive(:execute).with("keys", ["*"], {asking: false, random_node: false}).and_return(["abc", "def"])
       result = @redis.keys
       expect(result).to eq(["abc", "def"])
     end
