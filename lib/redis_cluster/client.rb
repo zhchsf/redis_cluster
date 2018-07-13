@@ -118,6 +118,11 @@ module RedisCluster
       execute(method, args, &block)
     end
 
+    # Add default argument to keys to match redis client interface
+    def keys(glob = "*", &block)
+      execute("keys", [glob], &block)
+    end
+
     # Closes all open connections and reloads the client pool.
     #
     # Normally host information from the last time the node pool was reloaded

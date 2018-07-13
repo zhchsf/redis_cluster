@@ -1,15 +1,16 @@
 require "spec_helper"
 
 describe "client" do
-  let(:pool_nodes) {@redis.instance_variable_get("@pool").nodes}
+  let(:pool)       {@redis.instance_variable_get("@pool")}
+  let(:pool_nodes) {pool.nodes}
   let(:pool_hosts) {pool_nodes.map{|n| n.host_hash[:host]}}
   let(:pool_ports) {pool_nodes.map{|n| n.host_hash[:port]}}
 
   before do
     cluster_nodes = [
-      [1000, 5460, ["127.0.0.1", 7003], ["127.0.0.1", 7000]], 
-      [0, 999, ["127.0.0.1", 7006], ["127.0.0.1", 7007]], 
-      [10923, 16383, ["127.0.0.1", 7002], ["127.0.0.1", 7005]], 
+      [1000, 5460, ["127.0.0.1", 7003], ["127.0.0.1", 7000]],
+      [0, 999, ["127.0.0.1", 7006], ["127.0.0.1", 7007]],
+      [10923, 16383, ["127.0.0.1", 7002], ["127.0.0.1", 7005]],
       [5461, 10922, ["127.0.0.1", 7004], ["127.0.0.1", 7001]]
     ]
     allow_any_instance_of(Redis).to receive(:cluster).and_return(cluster_nodes)
@@ -197,6 +198,14 @@ describe "client" do
       # instead of just the ones that we configured originally.
       expect(pool_hosts).to eq(["127.0.0.1"])
       expect(pool_ports).to eq(["7000"])
+    end
+  end
+
+  describe "keys" do
+    it "supports a default argument" do
+      allow(pool).to receive(:execute).with("keys", ["*"], {:asking=>false, :random_node=>false}).and_return(["abc", "def"])
+      result = @redis.keys
+      expect(result).to eq(["abc", "def"])
     end
   end
 end
