@@ -39,5 +39,14 @@ describe "node" do
     it "has a redis connection" do
       expect(subject.connection.class.name).to eq "Redis"
     end
+
+    it "should allow the default options to be overridden" do
+      other_node = RedisCluster::Node.new(host: '127.0.0.1', port: 6379, timeout: 20, driver: 'ruby')
+
+      connection_options = other_node.connection.instance_variable_get("@options")
+
+      expect(connection_options[:timeout]).to eq(20)
+      expect(connection_options[:driver]).to eq('ruby')
+    end
   end
 end

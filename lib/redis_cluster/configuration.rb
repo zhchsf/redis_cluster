@@ -16,7 +16,7 @@ module RedisCluster
       hincrby hincrbyfloat hkeys hvals hgetall publish pfadd
     ).freeze
 
-    SUPPORT_MULTI_NODE_METHODS = %w(keys script multi pipelined).freeze
+    SUPPORT_MULTI_NODE_METHODS = %w(keys script multi pipelined scan).freeze
 
     def self.method_names
       SUPPORT_SINGLE_NODE_METHODS + SUPPORT_MULTI_NODE_METHODS
