@@ -6,6 +6,7 @@ gem "redis", "~> 4.0", "<= 4.5.1"
 
 group :development do
   gem "appraisal"
+  gem "rake", "~> 13.0"
 
   platforms :mri do
     gem "pry-byebug"
