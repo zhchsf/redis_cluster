@@ -5,7 +5,6 @@ COMMON_TEST_CONFIG: &COMMON_TEST_CONFIG
     setup:
       gemfile:
         - Gemfile
-        - gemfiles/redis_3.gemfile
         - gemfiles/redis_4.gemfile
   artifact_paths:
     - spec/reports/**/*
