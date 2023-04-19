@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    redis_cluster (0.3.2)
+    redis_cluster (0.3.3)
       hiredis (~> 0.6)
       redis (>= 3.2, <= 4.5.1)
 
@@ -24,7 +24,7 @@ GEM
       byebug (~> 11.0)
       pry (~> 0.10)
     rake (13.0.6)
-    redis (3.3.5)
+    redis (4.5.1)
     rspec (3.12.0)
       rspec-core (~> 3.12.0)
       rspec-expectations (~> 3.12.0)
@@ -41,6 +41,7 @@ GEM
     thor (1.2.1)
 
 PLATFORMS
+  arm64-darwin-22
   x86_64-darwin-19
 
 DEPENDENCIES
