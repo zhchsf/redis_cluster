@@ -43,7 +43,7 @@ module RedisCluster
     def self.redis(options)
       default_options = {timeout: Configuration::DEFAULT_TIMEOUT, driver: 'hiredis'.freeze}
       host = options[:host]
-      host += ":#{@options[:port]}" if port
+      host += ":#{@options[:port]}" if @options[:port]
       ::EM::Hiredis.connect(host)
     end
 
