@@ -42,7 +42,7 @@ module RedisCluster
 
     def self.redis(options)
       default_options = {timeout: Configuration::DEFAULT_TIMEOUT, driver: 'hiredis'.freeze}
-      ::EM::Hiredis.connect(default_options.merge(options))
+      ::EM::Hiredis.connect
     end
 
   end # end Node
