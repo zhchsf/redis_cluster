@@ -1,4 +1,5 @@
 require "spec_helper"
+require "hiredis"
 
 describe "client" do
   let(:pool)       {@redis.instance_variable_get("@pool")}
