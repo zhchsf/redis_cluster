@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    redis_cluster (1.0.0.pre.ebertz.0)
+    redis_cluster (1.0.0.pre.ebertz.1)
       em-hiredis
       em-redis
       hiredis (~> 0.6)
