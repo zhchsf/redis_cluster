@@ -1,3 +1,3 @@
 module RedisCluster
-  VERSION = "1.0.0.pre.ebertz.2"
+  VERSION = "1.0.0.pre.ebertz.3"
 end
