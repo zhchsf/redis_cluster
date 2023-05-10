@@ -92,22 +92,7 @@ module RedisCluster
     end
 
     def key_by_command(method, args)
-      case method.to_s.downcase
-      when 'info', 'exec', 'slaveof', 'config', 'shutdown'
-        nil
-      when 'eval', 'evalsha'
-        if args[1].nil? || args[1].empty?
-          raise KeysNotSpecifiedError.new(method.upcase)
-        end
-
-        unless Slot.at_one?(args[1])
-          raise KeysNotAtSameSlotError.new(args[1])
-        end
-
-        return args[1][0]
-      else
-        return args.first
-      end
+      args.first
     end
 
     def on_each_node(method, *args)
