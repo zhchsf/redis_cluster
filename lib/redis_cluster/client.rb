@@ -175,7 +175,8 @@ module RedisCluster
           # Try a random host from our seed pool.
           options = @hosts.sample
 
-          redis = Node.redis(@pool.global_configs.merge(options))
+          print("CONFIGS: " + @pool.global_configs.merge(options).inspect + " OPTIONS: " + options.inspect)
+          redis = Node.redis(options)
           slots_mapping = redis.cluster("slots").group_by{|x| x[2]}
           @pool.delete_except!(slots_mapping.keys)
           slots_mapping.each do |host, infos|
