@@ -40,12 +40,8 @@ module RedisCluster
       @connection ||= self.class.redis(options)
     end
 
-    def host_uri(options)
-      "redis://#{options[:host]}:#{options[:port]}/0"
-    end
-
     def self.redis(options)
-      ::EM::Hiredis.connect(host_uri(options))
+      ::EM::Hiredis.connect("redis://#{options[:host]}:#{options[:port]}/0")
     end
 
   end # end Node
