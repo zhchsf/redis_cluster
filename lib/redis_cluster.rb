@@ -1,5 +1,6 @@
 require "redis_cluster/version"
-require "em-hiredis"
+require 'em-synchrony'
+require 'em-synchrony/em-hiredis'
 
 module RedisCluster
   

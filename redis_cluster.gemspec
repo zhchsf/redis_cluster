@@ -25,10 +25,12 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
+  spec.add_dependency "em-synchrony"
   spec.add_dependency "em-hiredis"
   spec.add_dependency "em-redis"
   spec.add_dependency "hiredis", "~> 0.6"
   spec.add_development_dependency "bundler", "~> 2.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "pry"
+
 end

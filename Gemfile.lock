@@ -1,9 +1,10 @@
 PATH
   remote: .
   specs:
-    redis_cluster (1.0.0.pre.ebertz.7)
+    redis_cluster (1.0.0.pre.ebertz.8)
       em-hiredis
       em-redis
+      em-synchrony
       hiredis (~> 0.6)
 
 GEM
@@ -21,6 +22,8 @@ GEM
       hiredis (~> 0.6.0)
     em-redis (0.3.0)
       eventmachine
+    em-synchrony (1.0.6)
+      eventmachine (>= 1.0.0.beta.1)
     eventmachine (1.2.7)
     hiredis (0.6.3)
     method_source (1.0.0)
