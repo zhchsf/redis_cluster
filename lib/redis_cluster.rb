@@ -1,5 +1,5 @@
 require "redis_cluster/version"
-require "em-redis"
+require "redis"
 
 module RedisCluster
   
